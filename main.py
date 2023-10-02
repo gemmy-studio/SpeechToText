@@ -44,7 +44,7 @@ def main():
     app_mode = st.sidebar.selectbox("오디오 업로드 방식", [
         use_file_upload, use_file_record])
     model_size = st.sidebar.selectbox("사용할 모델의 사이즈", [
-        'tiny', 'base', 'small', 'medium'])
+        'tiny', 'base', 'small', 'medium'], 1)
 
     if app_mode == use_file_upload:
         app_sst(
