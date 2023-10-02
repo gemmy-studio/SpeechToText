@@ -1,4 +1,4 @@
 openai-whisper
 streamlit
-audio_recorder_streamlit
+st_audiorec
 setuptools-rust

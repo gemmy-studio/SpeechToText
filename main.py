@@ -1,13 +1,10 @@
-from audio_recorder_streamlit import audio_recorder
+from st_audiorec import st_audiorec
 import streamlit as st
-import logging
-import logging.handlers
 import whisper
 import tempfile
+from streamlit.components.v1 import html
 import warnings
 warnings.filterwarnings("ignore")
-
-logger = logging.getLogger(__name__)
 
 if 'last_uploaded' not in st.session_state:
     st.session_state.last_uploaded = None
@@ -17,13 +14,36 @@ if 'download_buttons_created' not in st.session_state:
 
 
 def main():
-    st.header("Speech-to-Text 오디오를 텍스트로 변환하기")
+    st.set_page_config(page_title="Speech-to-Text 오디오를 텍스트로 변환", page_icon="favicon.ico",
+                       layout="wide", initial_sidebar_state="auto", menu_items=None)
+
+    button = """
+    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="woojae" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    """
+
+    html(button, height=70, width=240)
+
+    st.markdown(
+        """
+        <style>
+            iframe[width="240"] {
+                position: fixed;
+                bottom: 30px;
+                right: 10px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.header("Speech-to-Text 오디오를 텍스트로 변환")
 
     use_file_upload = "파일 업로드"
     use_file_record = "오디오 녹음"
-    app_mode = st.selectbox("오디오 업로드 방식을 선택해주세요.", [
-                            use_file_upload, use_file_record])
-    model_size = st.selectbox("사용할 모델의 사이즈를 선택해주세요.", [
+    st.sidebar.write("## 사용할 옵션을 선택해주세요.")
+    app_mode = st.sidebar.selectbox("오디오 업로드 방식", [
+        use_file_upload, use_file_record])
+    model_size = st.sidebar.selectbox("사용할 모델의 사이즈", [
         'tiny', 'base', 'small', 'medium'])
 
     if app_mode == use_file_upload:
@@ -81,14 +101,15 @@ def app_sst_recoder(model_size: str):
         """
 #### **직접 녹음하여 변환**
 
-마이크 모양 버튼을 클릭하여 직접 오디오를 녹음을 시작하고 종료하세요. 녹음이 완료되면 자동으로 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
+"Start Recording"과 "Stop" 버튼을 클릭하여 오디오 녹음을 시작하고 종료하세요. 녹음이 완료되면 자동으로 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
 """
     )
 
     recorded_file = False
-    audio_bytes = audio_recorder()
-    if audio_bytes:
-        recorded_file = st.audio(audio_bytes, format="audio/wav")
+
+    wav_audio_data = st_audiorec()
+    if wav_audio_data is not None:
+        recorded_file = True
 
     if recorded_file:  # recorded_file에 데이터가 있다면
         text_output = st.empty()
@@ -100,7 +121,8 @@ def app_sst_recoder(model_size: str):
         # 임시 파일에 recorded_file 데이터 저장
         with st.spinner('STT 처리중'):
             with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as tmpfile:
-                tmpfile.write(audio_bytes)  # recorded_file 대신 audio_bytes 사용
+                # recorded_file 대신 wav_audio_data 사용
+                tmpfile.write(wav_audio_data)
                 result = model.transcribe(tmpfile.name)
                 text = result["text"]
                 text_output.markdown(f"**Text:** {text}")
@@ -112,10 +134,7 @@ def app_sst_recoder(model_size: str):
                     file_name="output.txt",
                     mime="text/plain"
                 )
-    else:
-        st.session_state.last_uploaded = None
 
 
 if __name__ == "__main__":
-
     main()
