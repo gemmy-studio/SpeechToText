@@ -101,7 +101,7 @@ def app_sst_recoder(model_size: str):
         """
 #### **직접 녹음하여 변환**
 
-"Start Recording"과 "Stop" 버튼을 클릭하여 오디오 녹음을 시작하고 종료하세요. 녹음이 완료되면 자동으로 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
+"Start Recording"과 "Stop" 버튼을 클릭하여 오디오 녹음을 시작하고 종료하세요. 녹음 완료 후 '변환하기' 버튼을 누르면 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
 """
     )
 
@@ -112,28 +112,29 @@ def app_sst_recoder(model_size: str):
         recorded_file = True
 
     if recorded_file:  # recorded_file에 데이터가 있다면
-        text_output = st.empty()
+        if st.button('변환하기'):
+            text_output = st.empty()
 
-        # whisper 모델 로딩
-        with st.spinner('STT 로딩중'):
-            model = whisper.load_model(model_size)
+            # whisper 모델 로딩
+            with st.spinner('STT 로딩중'):
+                model = whisper.load_model(model_size)
 
-        # 임시 파일에 recorded_file 데이터 저장
-        with st.spinner('STT 처리중'):
-            with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as tmpfile:
-                # recorded_file 대신 wav_audio_data 사용
-                tmpfile.write(wav_audio_data)
-                result = model.transcribe(tmpfile.name)
-                text = result["text"]
-                text_output.markdown(f"**Text:** {text}")
+            # 임시 파일에 recorded_file 데이터 저장
+            with st.spinner('STT 처리중'):
+                with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as tmpfile:
+                    # recorded_file 대신 wav_audio_data 사용
+                    tmpfile.write(wav_audio_data)
+                    result = model.transcribe(tmpfile.name)
+                    text = result["text"]
+                    text_output.markdown(f"**Text:** {text}")
 
-                # 생성된 텍스트를 txt 파일로 다운로드 받을 수 있는 버튼 제공
-                st.download_button(
-                    label="다운로드",
-                    data=text.encode(),
-                    file_name="output.txt",
-                    mime="text/plain"
-                )
+                    # 생성된 텍스트를 txt 파일로 다운로드 받을 수 있는 버튼 제공
+                    st.download_button(
+                        label="다운로드",
+                        data=text.encode(),
+                        file_name="output.txt",
+                        mime="text/plain"
+                    )
 
 
 if __name__ == "__main__":
