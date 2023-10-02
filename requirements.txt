@@ -1,0 +1,4 @@
+openai-whisper
+streamlit
+audio_recorder_streamlit
+setuptools-rust
