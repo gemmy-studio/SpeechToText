@@ -14,7 +14,7 @@ if 'download_buttons_created' not in st.session_state:
 
 
 def main():
-    st.set_page_config(page_title="Speech-to-Text 오디오를 텍스트로 변환", page_icon="favicon.ico",
+    st.set_page_config(page_title="Whisper 기반 Speech-to-Text 애플리케이션", page_icon="favicon.ico",
                        layout="wide", initial_sidebar_state="auto", menu_items=None)
 
     button = """
@@ -36,15 +36,15 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.header("Speech-to-Text 오디오를 텍스트로 변환")
+    st.header("Whisper 기반 Speech-to-Text 애플리케이션")
 
     use_file_upload = "파일 업로드"
     use_file_record = "오디오 녹음"
-    st.sidebar.write("## 사용할 옵션을 선택해주세요.")
+    st.sidebar.write("## 사용할 옵션을 선택해주세요. 모델 사이즈의 크기는 최대 small까지 선택 가능합니다.")
     app_mode = st.sidebar.selectbox("오디오 업로드 방식", [
         use_file_upload, use_file_record])
     model_size = st.sidebar.selectbox("사용할 모델의 사이즈", [
-        'tiny', 'base', 'small', 'medium'], 1)
+        'tiny', 'base', 'small'], 1)
 
     if app_mode == use_file_upload:
         app_sst(
