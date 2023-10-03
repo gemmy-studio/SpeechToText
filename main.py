@@ -20,6 +20,11 @@ def main():
     st.set_page_config(page_title="Whisper 기반 Speech-to-Text 애플리케이션", page_icon="favicon.ico",
                        layout="wide", initial_sidebar_state="auto", menu_items=None)
     st.header("Whisper 기반 Speech-to-Text 애플리케이션")
+    st.write(
+        """
+        오디오를 업로드 하시고 텍스트로 변환해보세요. 왼쪽 사이드바를 사용하여 **파일 업로드** 또는 **오디오 녹음**을 선택하고 **모델 사이즈**를 설정 할 수 있습니다.
+        """
+    )
 
     use_file_upload = "파일 업로드"
     use_file_record = "오디오 녹음"
@@ -63,10 +68,9 @@ def main():
 def app_sst(model_size: str):
     st.markdown(
         """
-#### **파일 업로드를 통한 변환**
 
-아래의 "파일 업로드" 버튼을 사용하여 원하는 오디오 파일을 업로드하세요. 지원하는 파일 형식은 mp3, wav, ogg, opus, m4a, flac 입니다. 파일을 업로드하면 자동으로 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
-"""
+        지원하는 파일 형식은 mp3, wav, ogg, opus, m4a, flac 입니다. 파일을 업로드하면 자동으로 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
+        """
     )
 
     uploaded_file = st.file_uploader(
@@ -102,10 +106,9 @@ def app_sst(model_size: str):
 def app_sst_recoder(model_size: str):
     st.markdown(
         """
-#### **직접 녹음하여 변환**
 
-"Start Recording"과 "Stop" 버튼을 클릭하여 오디오 녹음을 시작하고 종료하세요. 녹음 완료 후 '변환하기' 버튼을 누르면 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
-"""
+        "Start Recording"과 "Stop" 버튼을 클릭하여 오디오 녹음을 시작하고 종료하세요. 녹음 완료 후 '변환하기' 버튼을 누르면 텍스트로 변환되며, 변환된 결과를 다운로드 받을 수 있습니다.
+        """
     )
 
     recorded_file = False
