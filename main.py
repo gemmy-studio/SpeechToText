@@ -1,7 +1,10 @@
-from st_audiorec import st_audiorec
-import streamlit as st
+import os
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
 import whisper
 import tempfile
+from st_audiorec import st_audiorec
+import streamlit as st
 from streamlit.components.v1 import html
 import warnings
 warnings.filterwarnings("ignore")
@@ -40,10 +43,13 @@ def main():
 
     use_file_upload = "파일 업로드"
     use_file_record = "오디오 녹음"
-    st.sidebar.write("## 사용할 옵션을 선택해주세요. 모델 사이즈의 크기는 최대 small까지 선택 가능합니다.")
-    app_mode = st.sidebar.selectbox("오디오 업로드 방식", [
+    st.sidebar.markdown(""" 
+                        ## **사용할 옵션을 선택해주세요.**
+                        모델 사이즈는 small까지 선택 가능합니다.
+                        """)
+    app_mode = st.sidebar.selectbox("업로드 방식", [
         use_file_upload, use_file_record])
-    model_size = st.sidebar.selectbox("사용할 모델의 사이즈", [
+    model_size = st.sidebar.selectbox("모델 사이즈", [
         'tiny', 'base', 'small'], 1)
 
     if app_mode == use_file_upload:
@@ -79,10 +85,9 @@ def app_sst(model_size: str):
 
             # 임시 파일에 업로드된 오디오 저장
             with st.spinner('STT 처리중'):
-                with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as tmpfile:
+                with tempfile.NamedTemporaryFile(delete=True, suffix=os.path.splitext(uploaded_file.name)[-1].lower()) as tmpfile:
                     tmpfile.write(uploaded_file.getvalue())
-                    result = model.transcribe(tmpfile.name)
-                    text = result["text"]
+                    text = transcribe_large_audio(tmpfile.name, model)
                     text_output.markdown(f"**Text:** {text}")
 
                     # 생성된 텍스트를 txt 파일로 다운로드 받을 수 있는 버튼 제공
@@ -124,8 +129,7 @@ def app_sst_recoder(model_size: str):
                 with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as tmpfile:
                     # recorded_file 대신 wav_audio_data 사용
                     tmpfile.write(wav_audio_data)
-                    result = model.transcribe(tmpfile.name)
-                    text = result["text"]
+                    text = transcribe_large_audio(tmpfile.name, model)
                     text_output.markdown(f"**Text:** {text}")
 
                     # 생성된 텍스트를 txt 파일로 다운로드 받을 수 있는 버튼 제공
@@ -135,6 +139,57 @@ def app_sst_recoder(model_size: str):
                         file_name="output.txt",
                         mime="text/plain"
                     )
+
+
+def transcribe_large_audio(audio_file, model):
+    """
+    주어진 오디오 파일을 분절하여 각 부분을 STT로 변환한 후, 결과를 반환합니다.
+
+    Parameters:
+    - audio_file: 분절하고 변환할 오디오 파일의 경로
+    - model: STT 변환에 사용할 whisper 모델
+
+    Returns:
+    - full_text: 분절된 오디오의 전체 STT 변환 결과
+    """
+
+    audio = AudioSegment.from_file(audio_file)
+
+    # 오디오 파일 분절
+    chunks = generate_chunks(audio,
+                             min_silence_len=500,  # 500ms의 조용한 구간
+                             silence_thresh=-40,  # 조용한 구간의 데시벨 기준
+                             keep_silence=100  # 조용한 구간의 앞뒤로 유지할 ms
+                             )
+
+    # 각 분절된 오디오를 STT로 처리
+    transcribed_texts = []
+    for chunk in chunks:
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as chunk_file:
+            chunk.export(chunk_file.name, format="wav")
+            result = model.transcribe(chunk_file.name)
+            transcribed_texts.append(result["text"])
+
+    # 결과를 합침
+    full_text = " ".join(transcribed_texts)
+
+    return full_text
+
+
+def generate_chunks(audio, min_silence_len=500, silence_thresh=-40, keep_silence=100):
+    while True:
+        chunks = split_on_silence(audio,
+                                  min_silence_len=min_silence_len,
+                                  silence_thresh=silence_thresh,
+                                  keep_silence=keep_silence
+                                  )
+
+        # 모든 chunk의 길이가 25000 이하인지 확인
+        if all(len(chunk) <= 25000 for chunk in chunks):
+            return chunks
+
+        # chunk의 길이가 25000을 초과하는 경우 silence_thresh를 1.25 증가시키고 다시 시도
+        silence_thresh += 1.25
 
 
 if __name__ == "__main__":

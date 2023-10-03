@@ -1,4 +1,5 @@
 openai-whisper
+ffmpeg-python
 streamlit
 streamlit-audiorec
 setuptools-rust
