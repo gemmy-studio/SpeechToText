@@ -19,26 +19,6 @@ if 'download_buttons_created' not in st.session_state:
 def main():
     st.set_page_config(page_title="Whisper 기반 Speech-to-Text 애플리케이션", page_icon="favicon.ico",
                        layout="wide", initial_sidebar_state="auto", menu_items=None)
-
-    button = """
-    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="woojae" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-    """
-
-    html(button, height=70, width=240)
-
-    st.markdown(
-        """
-        <style>
-            iframe[width="240"] {
-                position: fixed;
-                bottom: 30px;
-                right: 10px;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     st.header("Whisper 기반 Speech-to-Text 애플리케이션")
 
     use_file_upload = "파일 업로드"
@@ -60,6 +40,24 @@ def main():
         app_sst_recoder(
             str(model_size)
         )
+
+    # Buy me a coffee 버튼
+    button = """
+    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="woojae" data-color="#FFDD00" data-emoji="☕"  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    """
+    html(button, height=70, width=240)
+    st.markdown(
+        """
+        <style>
+            iframe[width="240"] {
+                position: fixed;
+                bottom: 30px;
+                right: 10px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def app_sst(model_size: str):
